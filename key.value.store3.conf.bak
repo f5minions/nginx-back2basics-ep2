@@ -1,0 +1,35 @@
+## kev.value.store.conf STEP 3 START
+
+#Following Block of text is for IP Allow/Deny List
+keyval_zone zone=allowlist_zone:1m type=ip state=allowlist_zone.keyval;
+keyval $remote_addr $target zone=allowlist_zone;
+
+keyval_zone zone=ssl_crt:10m state=ssl_crt.keyval;# Key-value store for certificate data
+keyval_zone zone=ssl_key:10m state=ssl_key.keyval;# Key-value store for private key data
+
+keyval $ssl_server_name $crt_pem zone=ssl_crt; # Use SNI as key to obtain cert
+keyval $ssl_server_name $key_pem zone=ssl_key;
+
+server {
+    
+    listen       8443 ssl;
+    server_name _;
+    index  index.html;
+
+    ssl_certificate      data:$crt_pem; # Certificate from key-value store      
+    ssl_certificate_key  data:$key_pem; # Private key from key-value store                             
+    ssl_protocols        TLSv1.3 TLSv1.2 TLSv1.1;
+    ssl_prefer_server_ciphers on;
+
+        if ($target) {
+            return 403;
+        }
+
+    location / {
+
+    root   /opt/services/covid-app;
+
+    }
+}
+
+## kev.value.store.conf STEP 3 END

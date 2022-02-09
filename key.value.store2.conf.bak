@@ -1,0 +1,45 @@
+## STEP 2 START
+
+#Following Block of text is for IP Allow/Deny List
+keyval_zone zone=allowlist_zone:1m type=ip state=allowlist_zone.keyval;
+keyval $remote_addr $target zone=allowlist_zone;
+
+#keyval_zone zone=ssl_crt:10m; # Key-value store for certificate data
+#keyval_zone zone=ssl_key:10m; # Key-value store for private key data
+
+#keyval $ssl_server_name $crt_pem zone=ssl_crt; # Use SNI as key to obtain cert
+#keyval $ssl_server_name $key_pem zone=ssl_key;
+server {
+    listen       8443;
+    server_name  www.f5knetwork.com;
+	return       301 https://$host$request_uri;
+}
+
+server {
+    
+    listen       443 ssl;
+    server_name _;
+    index  index.html;
+
+    #ssl_certificate     /etc/nginx/f5knetwork.com.crt;
+    #ssl_certificate_key     /etc/nginx/f5knetwork.com.key;
+
+    ssl_certificate     /etc/nginx/$ssl_server_name.crt;
+    ssl_certificate_key     /etc/nginx/$ssl_server_name.key;
+                                      
+    ssl_protocols        TLSv1.3 TLSv1.2 TLSv1.1;
+    ssl_prefer_server_ciphers on;
+
+        if ($target) {
+            return 403;
+        }
+
+
+    location / {
+
+    root   /opt/services/covid-app;
+
+    }
+}
+
+### STEP 2 END
